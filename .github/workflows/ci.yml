@@ -14,8 +14,8 @@ jobs:
         php-version: [ "8.1", "8.2", "8.3", "8.4", "8.5" ]
         jit: ["disable", "tracing"]
     steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
+      - name: Install PHP debug binaries with xdebug and pcov turned off (they interfere with the JIT)
+        uses: shivammathur/setup-php@v2
         env:
           coverage: none
           debug: true
