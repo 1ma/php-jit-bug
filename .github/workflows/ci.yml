@@ -6,19 +6,20 @@ on:
 
 jobs:
   jit-off:
-    name: PHP ${{ matrix.php-version }}, jit=${{ matrix.jit }}
+    name: PHP ${{ matrix.php-version }}, jit=${{ matrix.jit }}, debug=${{ matrix.debug-build }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         php-version: [ "8.1", "8.2", "8.3", "8.4", "8.5" ]
         jit: ["disable", "tracing"]
+        debug-build: [ true, false ]
     steps:
       - name: Install PHP debug binaries with xdebug and pcov turned off (they interfere with the JIT)
         uses: shivammathur/setup-php@v2
         env:
           coverage: none
-          debug: true
+          debug: ${{ matrix.debug-build }}
         with:
           php-version: ${{ matrix.php-version }}
       - name: Test regression
