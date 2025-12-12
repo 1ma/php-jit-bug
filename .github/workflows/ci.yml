@@ -1,0 +1,37 @@
+name: Reproduce JIT bug on PHP +8.4
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  jit-off:
+    name: PHP ${{ matrix.php-version }}, jit=${{ matrix.jit }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [ "8.1", "8.2", "8.3", "8.4", "8.5" ]
+        jit: ["disable", "tracing"]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        env:
+          coverage: none
+          debug: true
+        with:
+          php-version: ${{ matrix.php-version }}
+      - name: Test regression
+        run: |
+          sudo apt-get install valgrind
+          export USE_ZEND_ALLOC=0
+          export ZEND_DONT_UNLOAD_MODULES=1
+          valgrind --tool=memcheck \
+            --track-origins=yes --num-callers=50 --undef-value-errors=yes \
+            --error-exitcode=1 \
+            php -n \
+            -d zend_extension=opcache \
+            -d opcache.enable_cli=1 \
+            -d opcache.jit=${{ matrix.jit }} \
+            -d opcache.jit_buffer_size=256M \
+            -v
